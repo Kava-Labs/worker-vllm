@@ -3,11 +3,11 @@ variable "PUSH" {
 }
 
 variable "REPOSITORY" {
-  default = "runpod"
+  default = "kava"
 }
 
 variable "BASE_IMAGE_VERSION" {
-  default = "v2.0.0stable"
+  default = "v2.0.0-beta.0"
 }
 
 group "all" {
@@ -21,7 +21,7 @@ group "main" {
 
  
 target "worker-1210" {
-  tags = ["${REPOSITORY}/worker-v1-vllm:${BASE_IMAGE_VERSION}-cuda12.1.0"]
+  tags = ["${REPOSITORY}/runpod-worker-vllm:${BASE_IMAGE_VERSION}-cuda12.1.0"]
   context = "."
   dockerfile = "Dockerfile"
   args = {
