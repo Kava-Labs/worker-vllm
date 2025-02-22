@@ -108,6 +108,8 @@ def match_vllm_args(args):
     renamed_args = {RENAME_ARGS_MAP.get(k, k): v for k, v in args.items()}
     matched_args = {k: v for k, v in renamed_args.items() if k in AsyncEngineArgs.__dataclass_fields__}
     return {k: v for k, v in matched_args.items() if v not in [None, ""]}
+
+
 def get_local_args():
     """
     Retrieve local arguments from a JSON file.
@@ -129,9 +131,33 @@ def get_local_args():
     os.environ["HF_HUB_OFFLINE"] = "1"
 
     return local_args
+
+def parse_hf_overrides():
+    hf_overrides_str = os.getenv('HF_OVERRIDES')
+    if not hf_overrides_str:
+        return None
+    
+    try:
+        overrides = json.loads(hf_overrides_str)
+
+        if not isinstance(overrides, dict):
+            logging.warning(f"HF_OVERRIDES must be a JSON object, got {type(overrides)}")
+            return None
+        logging.info(f"Loaded HF_OVERRIDES: {overrides}")
+        return overrides
+
+    except json.JSONDecodeError as e:
+        print(f"Failed to parse HF_OVERRIDES: {e}")
+        return None
+
 def get_engine_args():
     # Start with default args
     args = DEFAULT_ARGS
+
+    # Parse HF overrides first
+    hf_overrides = parse_hf_overrides()
+    if hf_overrides:
+        args["hf_overrides"] = hf_overrides
     
     # Get env args that match keys in AsyncEngineArgs
     args.update(os.environ)
