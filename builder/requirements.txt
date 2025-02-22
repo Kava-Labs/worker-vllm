@@ -9,3 +9,4 @@ pydantic
 pydantic-settings
 hf-transfer
 transformers>=4.49.0
+bitsandbytes>=0.45.0
