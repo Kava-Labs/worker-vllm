@@ -4,6 +4,7 @@ from http import HTTPStatus
 from functools import wraps
 from time import time
 from vllm.entrypoints.openai.protocol import RequestResponseMetadata
+from typing import Mapping, Optional
 
 try:
     from vllm.utils import random_uuid
@@ -15,9 +16,25 @@ except ImportError:
 
 logging.basicConfig(level=logging.INFO)
 
-def convert_limit_mm_per_prompt(input_string: str):
-    key, value = input_string.split('=')
-    return {key: int(value)}
+def convert_limit_mm_per_prompt(input_string: Optional[str]) -> Mapping[str, int]:
+    if not input_string or input_string.strip() == "":
+        return {}
+    
+    result = {}
+    pairs = input_string.split(',')
+
+    for pair in pairs:
+        pair = pair.strip()
+        if '=' in pair:
+            key, value = pair.split('=', 1)  # Split on first occurrence only
+            try:
+                result[key] = int(value)
+            except ValueError:
+                logging.warning(f"Invalid value in limit_mm_per_prompt: {pair}")
+        else:
+            logging.warning(f"Ignoring malformed entry in limit_mm_per_prompt: {pair}")
+
+    return result
 
 def count_physical_cores():
     with open('/proc/cpuinfo') as f:

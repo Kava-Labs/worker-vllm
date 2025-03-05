@@ -29,16 +29,6 @@ ENV MODEL_NAME=$MODEL_NAME \
 RUN --mount=type=cache,target=/root/.cache/pip \
     python3 -m pip install huggingface-hub
 
-# Copy only the download_model.py script and download the model
-COPY src/download_model.py /src/download_model.py
-RUN --mount=type=secret,id=HF_TOKEN,required=false \
-    if [ -f /run/secrets/HF_TOKEN ]; then \
-    export HF_TOKEN=$(cat /run/secrets/HF_TOKEN); \
-    fi && \
-    if [ -n "$MODEL_NAME" ]; then \
-    python3 /src/download_model.py; \
-    fi
-
 ################################################################################
 # Install Python dependencies
 COPY builder/requirements.txt /requirements.txt
@@ -49,6 +39,16 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # Install vLLM (switching back to pip installs since issues that required building fork are fixed and space optimization is not as important since caching) and FlashInfer 
 RUN python3 -m pip install vllm==0.7.3 && \
     python3 -m pip install flashinfer -i https://flashinfer.ai/whl/cu121/torch2.3
+
+# Copy only the download_model.py script and download the model
+COPY src/download_model.py src/utils.py /src/
+RUN --mount=type=secret,id=HF_TOKEN,required=false \
+    if [ -f /run/secrets/HF_TOKEN ]; then \
+    export HF_TOKEN=$(cat /run/secrets/HF_TOKEN); \
+    fi && \
+    if [ -n "$MODEL_NAME" ]; then \
+    python3 /src/download_model.py; \
+    fi
 
 ENV PYTHONPATH="/:/vllm-workspace"
 
