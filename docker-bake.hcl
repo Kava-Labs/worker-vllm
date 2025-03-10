@@ -37,3 +37,32 @@ target "worker-1210" {
   }
   output = ["type=docker,push=${PUSH}"]
 }
+
+target "worker-qwq-32b" {
+  tags = ["${REPOSITORY}/runpod-worker-vllm:v2.0.0-beta.4-cuda12.1.0-qwq-32b"]
+  context = "."
+  dockerfile = "Dockerfile"
+  args = {
+    WORKER_CUDA_VERSION = "12.1.0"
+    # Embed model in Docker image
+    MODEL_NAME = "unsloth/QwQ-32B-GGUF"
+    # Need both GGUF and config.json file
+    CUSTOM_ALLOW_PATTERNS= "*Q6_K*,*.json"
+    # Get tokenizer files from dynamic repo, GGUF repo doesn't have any
+    # tokenizer files
+    TOKENIZER_NAME = "unsloth/QwQ-32B-unsloth-bnb-4bit"
+  }
+  output = ["type=docker,push=${PUSH}"]
+}
+
+target "worker-qwq-32b-bnb-4bit" {
+  tags = ["${REPOSITORY}/runpod-worker-vllm:v2.0.0-beta.1-cuda12.1.0-qwq-32b-bnb-4bit"]
+  context = "."
+  dockerfile = "Dockerfile"
+  args = {
+    WORKER_CUDA_VERSION = "12.1.0"
+    # Embed model in Docker image
+    MODEL_NAME = "unsloth/QwQ-32B-unsloth-bnb-4bit"
+  }
+  output = ["type=docker,push=${PUSH}"]
+}
